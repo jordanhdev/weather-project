@@ -4,11 +4,34 @@
   text-align: center;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
+.locSearchCont {
+  display: flex;
+  justify-content: center;
+  height: 50px;
+  gap: 10px
+}
+
+.searchBar {
+  width: 350px;
+  border-radius: 5px;
+  font-size: 20px;
+  border: 2px solid gray;
+  padding: 0 10px;
+}
+
+.searchButton {
+  border-radius: 5px;
+  font-size: 20px;
+  border: 2px solid gray;
+  padding: 15px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.searchIcon {
+  filter: invert(100%) sepia(100%) saturate(0%);
 }
 
 .weatherTableCont {
@@ -16,28 +39,57 @@
   display: flex;
   justify-content: center;
   gap: 10px;
+  flex-wrap: wrap;
 }
 
 .weatherDayCont {
   display: flex;
   flex-direction: column;
-  height: 300px;
+
+  width: 180px;
+  height: 260px;
   background-color: #131313;
   border: 3px solid gray;
   border-radius: 10px;
+  padding: 10px;
+
+  font-size: 20px;
 }
 
-/* @keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
+.weatherIcon {
+  font-size: 60px;
+  padding: 20px 0;
+}
+
+@media (max-width: 450px) {
+  #root {
+    margin: 0 auto;
+    padding: 20px;
+    text-align: center;
   }
-  to {
-    transform: rotate(360deg);
+
+  .header {
+    margin-top: 0px;
+    margin-bottom: 20px;
+    font-size: 40px;
+  }
+  
+  .weatherLocation {
+    font-size: 20px;
+  }
+
+  .weatherTableCont {
+    margin-top: 10px;
   }
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
+@media (max-width: 350px) {
+  .locSearchCont {
+    flex-wrap: wrap;
+    height: unset;
   }
-} */
+
+  .searchBar {
+    height: 50px;
+  }
+}

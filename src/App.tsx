@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react'
+import search from '/search.svg'
 import './weather-icons.css'
 import './App.css'
 import { GeoData, LocData, TransposedWeatherData, WeatherData } from './types'
@@ -147,10 +148,10 @@ function App() {
     return (
       <div className='weatherDayCont'>
         <span className='weatherDate'>{date.toDateString()}</span>
-        <i className={"wi " + getWeatherImg(weatherInfo.weatherCode)}></i>
+        <i className={"weatherIcon wi " + getWeatherImg(weatherInfo.weatherCode)}></i>
         <span className='weatherDesc'>{getWeatherDesc(weatherInfo.weatherCode)}</span>
         <span className='weatherTemp'>{weatherInfo.tempMin + "°C/" + weatherInfo.tempMax + "°C"}</span>
-        <span className='weatherWindSpeed'>{weatherInfo.windSpeed + "km/h"}</span>
+        <span className='weatherWindSpeed'>{"Wind: " + weatherInfo.windSpeed + "km/h"}</span>
       </div>
     )
 
@@ -158,10 +159,12 @@ function App() {
 
   return (
     <>
-      <h1>Weather Checker</h1>
+      <h1 className="header">Weather Checker</h1>
       <div className="locSearchCont">
         <input ref={searchRef} className="searchBar" type="search"/>
-        <button className="button" onClick={()=> handleSubmit()}></button>
+        <button className="searchButton" onClick={()=> handleSubmit()}>
+          <img className='searchIcon' src={search}></img>
+        </button>
       </div>
       {appState == AppStateEnum.ERROR && <span className="errorText">{errorText.current}</span>}
       {appState == AppStateEnum.COMPLETE &&
