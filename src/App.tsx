@@ -1,8 +1,10 @@
 import { useRef, useState } from 'react'
 import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
+import './weather-icons.css'
 import './App.css'
-import { GeoData, LocData } from './types'
+import { GeoData, LocData, TransposedWeatherData, WeatherData } from './types'
+import { JSX } from 'react/jsx-runtime'
+import { getWeatherDesc, getWeatherImg } from './weatherCodeUtil'
 
 enum AppStateEnum {
   WAITING,
@@ -12,21 +14,30 @@ enum AppStateEnum {
 
 function App() {
   const [appState, setAppState] = useState(AppStateEnum.WAITING);
+  const [locName, setLocName] = useState("");
+  const [weatherData, setWeatherData] = useState<TransposedWeatherData[]>([]);
 
   const searchRef = useRef<HTMLInputElement | null>(null);
   const errorText = useRef("");
+
+  const forecastDays = 5;
   
   async function handleSubmit() {
     if(searchRef.current && searchRef.current.value != "") {
       setAppState(AppStateEnum.WAITING);
+      errorText.current = "";
       
       const locData = await getGeoData(searchRef.current.value)
 
       if(locData != null) {
-        await getWeatherData(locData);
-      }
+        const nWeatherData = await getWeatherData(locData);
 
-      setAppState(AppStateEnum.COMPLETE);
+        if(nWeatherData != null && nWeatherData.length != 0){
+          setWeatherData(nWeatherData)
+          setLocName(getLocName(locData))
+          setAppState(AppStateEnum.COMPLETE);
+        }
+      }
     }
     else {
       setAPIError("no_loc");
@@ -54,18 +65,39 @@ function App() {
     }
   }
 
-  async function getWeatherData(lData: LocData) {
+  async function getWeatherData(lData: LocData): Promise<TransposedWeatherData[] | null> {
     const res = await fetch(
-      "https://api.open-meteo.com/v1/forecast?latitude=" + lData.latitude + "&longitude=" + lData.longitude + "&timezone=" + lData.timezone + "&daily=weather_code,temperature_2m_max,temperature_2m_min,wind_speed_10m_max&forecast_days=6"); 
+      "https://api.open-meteo.com/v1/forecast?latitude=" + lData.latitude + "&longitude=" + lData.longitude + "&timezone=" + lData.timezone + "&daily=weather_code,temperature_2m_max,temperature_2m_min,wind_speed_10m_max&forecast_days=" + forecastDays); 
   
     if(!res.ok || res.status == 401) 
     {
       setAPIError("api_error");
-      return;
+      return null;
     }
 
-    const rData = await res.json();
-    console.log(rData); 
+    const rData = await res.json() as WeatherData;
+
+    if(rData.daily == undefined) {
+      setAPIError("api_error");
+      return null;
+    }
+
+    //requirement is to get the next 5 days of weather, unsure if this included the current day as well or the next 5 days. have included the current day 
+    const weatherData: TransposedWeatherData[] = [];
+
+    for (let i = 0; i < forecastDays; i++) {
+      let newWeatherData: TransposedWeatherData = {
+        tempMax: rData.daily.temperature_2m_max[i],
+        tempMin: rData.daily.temperature_2m_min[i],
+        time: rData.daily.time[i],
+        weatherCode: rData.daily.weather_code[i],
+        windSpeed: rData.daily.wind_speed_10m_max[i]
+      };
+
+      weatherData.push(newWeatherData);
+    }
+
+    return weatherData;
   }
 
   function setAPIError(errType: string) {
@@ -83,23 +115,43 @@ function App() {
     }
   }
 
+  function getLocName(lData: LocData) {
+    let lName = "";
+
+    if (lData.admin2) { lName += lData.admin2 + ", "; }
+    if (lData.admin1) { lName += lData.admin1 + ", "; }
+    if (lData.admin3) { lName += lData.admin3 + ", "; }
+    if (lData.country) { lName += lData.country; }
+
+    return lName;
+  }
+
   function WeatherTable(){
+    let weatherElems: JSX.Element[] = [];
+
+    for (let i = 0; i < weatherData.length; i++) {
+      weatherElems.push(
+        <WeatherDayForecast weatherInfo={weatherData[i]} key={i}/>
+      )
+    }
+
     return (
       <div className='weatherTableCont'>
-        <WeatherDayForecast/>
-        <WeatherDayForecast/>
+        {weatherElems}
       </div>
     )
   }
 
-  function WeatherDayForecast(){
+  function WeatherDayForecast({weatherInfo}: {weatherInfo: TransposedWeatherData}){
+    const date = new Date(weatherInfo.time);
+
     return (
       <div className='weatherDayCont'>
-        <span className='weatherDate'>24/02</span>
-        <img src={reactLogo} className="logo react" alt="React logo" />
-        <span className='weatherDesc'>It's hot</span>
-        <span className='weatherTemp'>32</span>
-        <span className='weatherWindSpeed'>4mph</span>
+        <span className='weatherDate'>{date.toDateString()}</span>
+        <i className={"wi " + getWeatherImg(weatherInfo.weatherCode)}></i>
+        <span className='weatherDesc'>{getWeatherDesc(weatherInfo.weatherCode)}</span>
+        <span className='weatherTemp'>{weatherInfo.tempMin + "°C/" + weatherInfo.tempMax + "°C"}</span>
+        <span className='weatherWindSpeed'>{weatherInfo.windSpeed + "km/h"}</span>
       </div>
     )
 
@@ -111,7 +163,11 @@ function App() {
       <input ref={searchRef} className="searchBar" type="search"/>
       <button className="button" onClick={()=> handleSubmit()}></button>
       {appState == AppStateEnum.ERROR && <span className="errorText">{errorText.current}</span>}
-      {appState == AppStateEnum.COMPLETE && <WeatherTable/>}
+      {appState == AppStateEnum.COMPLETE &&
+      <>
+        <span>{"Weather data for " + locName }</span>
+        <WeatherTable/> 
+      </>}
     </>
   )
 }
