@@ -1,5 +1,4 @@
 import { useRef, useState } from 'react'
-import reactLogo from './assets/react.svg'
 import './weather-icons.css'
 import './App.css'
 import { GeoData, LocData, TransposedWeatherData, WeatherData } from './types'
@@ -160,12 +159,14 @@ function App() {
   return (
     <>
       <h1>Weather Checker</h1>
-      <input ref={searchRef} className="searchBar" type="search"/>
-      <button className="button" onClick={()=> handleSubmit()}></button>
+      <div className="locSearchCont">
+        <input ref={searchRef} className="searchBar" type="search"/>
+        <button className="button" onClick={()=> handleSubmit()}></button>
+      </div>
       {appState == AppStateEnum.ERROR && <span className="errorText">{errorText.current}</span>}
       {appState == AppStateEnum.COMPLETE &&
       <>
-        <span>{"Weather data for " + locName }</span>
+        <h2 className="weatherLocation">{"Weather data for " + locName }</h2>
         <WeatherTable/> 
       </>}
     </>
