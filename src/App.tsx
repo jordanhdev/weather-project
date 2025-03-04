@@ -44,6 +44,11 @@ function App() {
     }
   }
 
+  /**
+   * Gets the longitude, latitude, time code and full name of the location requested by the user. 
+   * @param locName - string entered by the user in the search bar.
+   * @returns Location data as LocData or null if the API fails or another issue was ran into
+   */
   async function getGeoData(locName: string): Promise<LocData | null> {
     const res = await fetch("https://geocoding-api.open-meteo.com/v1/search?name=" + locName + "&count=1&language=en&format=json");
   
@@ -65,6 +70,11 @@ function App() {
     }
   }
 
+  /**
+   * Gets the next set amount of days weather data including today, defined by forecastDays.
+   * @param lData - longitude, latitude, and time zone obtained from getGeoData
+   * @returns max/min temp, date, windspeed and weather code for the requested amount of days
+   */
   async function getWeatherData(lData: LocData): Promise<TransposedWeatherData[] | null> {
     const res = await fetch(
       "https://api.open-meteo.com/v1/forecast?latitude=" + lData.latitude + "&longitude=" + lData.longitude + "&timezone=" + lData.timezone + "&daily=weather_code,temperature_2m_max,temperature_2m_min,wind_speed_10m_max&forecast_days=" + forecastDays); 
@@ -100,6 +110,10 @@ function App() {
     return weatherData;
   }
 
+  /**
+   * Prints an error based on a passed in string code.
+   * @param errType - code of the error to display
+   */
   function setAPIError(errType: string) {
     setAppState(AppStateEnum.ERROR);
     switch (errType) {
@@ -115,6 +129,11 @@ function App() {
     }
   }
 
+  /**
+   * Concatenates the name params returned from open-meteo into a single string.
+   * @param lData - Location data returned from getGeoData
+   * @returns Full name of all location strings
+   */
   function getLocName(lData: LocData) {
     let lName = "";
 
